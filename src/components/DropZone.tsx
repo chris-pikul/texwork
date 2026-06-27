@@ -1,5 +1,6 @@
 import { useRef, useState } from 'react'
 import type { DragEvent, ChangeEvent } from 'react'
+import styles from './DropZone.module.css'
 
 interface Props {
   onFiles: (files: File[]) => void
@@ -7,10 +8,9 @@ interface Props {
   multiple?: boolean
   children?: React.ReactNode
   className?: string
-  style?: React.CSSProperties
 }
 
-export function DropZone({ onFiles, accept = 'image/*', multiple = true, children, className, style }: Props) {
+export function DropZone({ onFiles, accept = 'image/*', multiple = true, children, className }: Props) {
   const inputRef = useRef<HTMLInputElement>(null)
   const [dragging, setDragging] = useState(false)
 
@@ -30,8 +30,7 @@ export function DropZone({ onFiles, accept = 'image/*', multiple = true, childre
 
   return (
     <div
-      className={className}
-      style={{ cursor: 'pointer', ...style }}
+      className={`${styles.zone}${className ? ` ${className}` : ''}`}
       data-dragging={dragging}
       onClick={() => inputRef.current?.click()}
       onDrop={handleDrop}

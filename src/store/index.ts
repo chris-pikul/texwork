@@ -13,6 +13,7 @@ import type {
 
 // Vite transforms this static import into a Worker constructor at build time
 import WorkerCtor from '../worker/index.ts?worker'
+import { detectTexture } from '../lib/detectTexture.ts'
 
 function uid(): string {
   return Math.random().toString(36).slice(2, 10)
@@ -39,10 +40,12 @@ function defaultModifierParams(type: ModifierType): Record<string, unknown> {
 }
 
 export type PreviewTexture = { buffer: ArrayBuffer; width: number; height: number }
+export type OutputMode = 'passthrough' | 'greyscale' | 'composite'
 
 interface AppState {
   sources: Source[]
   outputs: Output[]
+  materialName: string
   previewWiring: PreviewWiring
   worker: Worker | null
   previewTextures: Map<string, PreviewTexture>
@@ -66,16 +69,18 @@ interface AppState {
 
   // Outputs
   addOutput: () => void
+  addOutputFromSource: (sourceId: string, mode: OutputMode) => void
   removeOutput: (id: string) => void
   updateOutputName: (id: string, name: string) => void
   updateOutputChannel: (outputId: string, ch: Channel, value: Partial<OutputChannel>) => void
   updateOutputFormat: (id: string, format: Output['format']) => void
   updateOutputSize: (id: string, size: Output['size']) => void
+  setMaterialName: (name: string) => void
 
   // Preview
   setPreviewModel: (model: PreviewWiring['model']) => void
-  applyPreset: (preset: PreviewWiring['preset']) => void
-  setSlot: (slot: keyof PreviewWiring['slots'], outputId: string | undefined) => void
+  setRGBSlot: (slot: 'albedo' | 'normal' | 'emissive', outputId?: string) => void
+  setChannelSlot: (slot: 'metallic' | 'roughness' | 'ao' | 'height', outputId?: string, channel?: Channel) => void
 
   // Worker dispatch
   dispatchPreview: () => void
@@ -87,12 +92,30 @@ interface AppState {
   _onExportReady: (outputId: string, buf: ArrayBuffer, width: number, height: number) => void
 }
 
+function autoWirePreview(wiring: PreviewWiring, outputId: string, name: string): Partial<PreviewWiring> {
+  const n = name.toLowerCase()
+  if (['albedo', 'diffuse', 'color', 'colour', 'basecolor'].includes(n))   return { albedo:    { outputId } }
+  if (n === 'normal')                                                        return { normal:    { outputId } }
+  if (['emissive', 'emission'].includes(n))                                  return { emissive:  { outputId } }
+  if (['metallic', 'metal', 'metalness'].includes(n))                        return { metallic:  { ...wiring.metallic,  outputId } }
+  if (['roughness', 'rough'].includes(n))                                    return { roughness: { ...wiring.roughness, outputId } }
+  if (['ao', 'occlusion', 'ambientocclusion'].includes(n))                   return { ao:        { ...wiring.ao,        outputId } }
+  if (['height', 'displacement', 'disp', 'bump'].includes(n))                return { height:    { ...wiring.height,    outputId } }
+  return {}
+}
+
 let previewDebounce: ReturnType<typeof setTimeout> | null = null
 
 export const useStore = create<AppState>((set, get) => ({
   sources: [],
   outputs: [],
-  previewWiring: { model: 'sphere', preset: 'custom', slots: {} },
+  materialName: '',
+  previewWiring: {
+    model: 'sphere',
+    albedo: {}, normal: {}, emissive: {},
+    metallic: { channel: 'r' }, roughness: { channel: 'r' },
+    ao: { channel: 'r' },      height:    { channel: 'r' },
+  },
   worker: null,
   previewTextures: new Map(),
 
@@ -148,13 +171,22 @@ export const useStore = create<AppState>((set, get) => ({
     set(s => ({ sources: s.sources.map(src => src.id === id ? { ...src, name } : src) })),
 
   loadSourceFile: async (id, file) => {
+    const isFresh = !get().sources.find(s => s.id === id)?.file
+    const hint = detectTexture(file.name)
+
     const bitmap = await createImageBitmap(file)
     const canvas = new OffscreenCanvas(bitmap.width, bitmap.height)
     const ctx = canvas.getContext('2d')!
     ctx.drawImage(bitmap, 0, 0)
     bitmap.close()
     const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height)
-    set(s => ({ sources: s.sources.map(src => src.id === id ? { ...src, file } : src) }))
+
+    set(s => ({
+      sources: s.sources.map(src => {
+        if (src.id !== id) return src
+        return { ...src, file, ...(isFresh ? { name: hint.suggestedName } : {}) }
+      }),
+    }))
     get().worker?.postMessage({ type: 'LOAD_SOURCE', sourceId: id, imageData })
   },
 
@@ -226,6 +258,31 @@ export const useStore = create<AppState>((set, get) => ({
 
   addOutput: () => set(s => ({ outputs: [...s.outputs, defaultOutput()] })),
 
+  addOutputFromSource: (sourceId, mode) => {
+    const source = get().sources.find(s => s.id === sourceId)
+    if (!source) return
+
+    const src = (ch: Channel): OutputChannel => ({ sourceId, channel: ch, constant: 0 })
+    const con = (v: number): OutputChannel => ({ sourceId: null, channel: 'r', constant: v })
+
+    const channels: Output['channels'] =
+      mode === 'passthrough' ? { r: src('r'), g: src('g'), b: src('b'), a: con(1) } :
+      mode === 'greyscale'   ? { r: src('r'), g: src('r'), b: src('r'), a: con(1) } :
+                               { r: con(0),   g: con(0),   b: con(0),   a: con(1) }
+
+    const output: Output = {
+      id: uid(),
+      name: source.name,
+      channels,
+      format: 'png',
+      size: 'match-source',
+    }
+    set(s => ({ outputs: [...s.outputs, output] }))
+    const wire = autoWirePreview(get().previewWiring, output.id, output.name)
+    if (Object.keys(wire).length) set(s => ({ previewWiring: { ...s.previewWiring, ...wire } }))
+    get().dispatchPreview()
+  },
+
   removeOutput: (id) => set(s => ({ outputs: s.outputs.filter(o => o.id !== id) })),
 
   updateOutputName: (id, name) =>
@@ -248,31 +305,26 @@ export const useStore = create<AppState>((set, get) => ({
   updateOutputSize: (id, size) =>
     set(s => ({ outputs: s.outputs.map(o => o.id === id ? { ...o, size } : o) })),
 
+  setMaterialName: (name) => set({ materialName: name }),
+
   // ── Preview ──────────────────────────────────────────────────────────────────
 
   setPreviewModel: (model) => set(s => ({ previewWiring: { ...s.previewWiring, model } })),
 
-  applyPreset: (preset) => {
-    const outputs = get().outputs
-    const find = (...keywords: string[]) =>
-      outputs.find(o => keywords.some(k => o.name.toLowerCase().includes(k)))?.id
+  setRGBSlot: (slot, outputId) =>
+    set(s => ({ previewWiring: { ...s.previewWiring, [slot]: { outputId } } })),
 
-    const slots: PreviewWiring['slots'] =
-      preset === 'orm'      ? { orm: find('orm') } :
-      preset === 'diffuse'  ? { albedo: find('albedo', 'diffuse', 'color') } :
-      preset === 'normal'   ? { normal: find('normal') } :
-      preset === 'pbr-full' ? {
-        albedo:   find('albedo', 'diffuse', 'color'),
-        orm:      find('orm'),
-        normal:   find('normal'),
-        emissive: find('emissive', 'emission'),
-      } : {}
-
-    set(s => ({ previewWiring: { ...s.previewWiring, preset, slots } }))
-  },
-
-  setSlot: (slot, outputId) =>
-    set(s => ({ previewWiring: { ...s.previewWiring, slots: { ...s.previewWiring.slots, [slot]: outputId } } })),
+  setChannelSlot: (slot, outputId, channel) =>
+    set(s => ({
+      previewWiring: {
+        ...s.previewWiring,
+        [slot]: {
+          ...s.previewWiring[slot],
+          ...(outputId !== undefined ? { outputId } : {}),
+          ...(channel  !== undefined ? { channel }  : {}),
+        },
+      },
+    })),
 
   // ── Dispatch ─────────────────────────────────────────────────────────────────
 
@@ -313,13 +365,15 @@ export const useStore = create<AppState>((set, get) => ({
   _onExportReady: (outputId, buf, width, height) => {
     void height
     void width
+    const { materialName } = get()
     const output = get().outputs.find(o => o.id === outputId)
     const mime = output?.format === 'jpeg' ? 'image/jpeg' : 'image/png'
     const blob = new Blob([buf], { type: mime })
     const url = URL.createObjectURL(blob)
     const a = document.createElement('a')
     a.href = url
-    a.download = `${output?.name ?? 'output'}.${output?.format ?? 'png'}`
+    const stem = [materialName, output?.name ?? 'output'].filter(Boolean).join('_')
+    a.download = `${stem}.${output?.format ?? 'png'}`
     document.body.appendChild(a)
     a.click()
     document.body.removeChild(a)

@@ -1,0 +1,8 @@
+.zone {
+  cursor: pointer;
+}
+
+.zone[data-dragging="true"] {
+  outline: 1px solid var(--border-hi);
+  outline-offset: -1px;
+}

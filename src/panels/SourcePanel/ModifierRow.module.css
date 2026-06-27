@@ -1,0 +1,44 @@
+.row {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  padding: 6px 8px;
+}
+
+.row[data-disabled="true"] {
+  opacity: 0.35;
+}
+
+.rowHeader {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 6px;
+}
+
+.typeLabel {
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--text-h);
+  flex: 1;
+}
+
+.channels {
+  display: flex;
+  gap: 10px;
+}
+
+.chLabel {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  color: var(--text-h);
+  cursor: pointer;
+  user-select: none;
+}
+
+.stack {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}

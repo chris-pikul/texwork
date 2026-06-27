@@ -1,4 +1,5 @@
 import { Slider } from './Slider.tsx'
+import styles from './ColorPicker.module.css'
 
 interface Props {
   value: [number, number, number]
@@ -10,10 +11,10 @@ export function ColorPicker({ value, onChange }: Props) {
   const swatch = `rgb(${Math.round(r * 255)},${Math.round(g * 255)},${Math.round(b * 255)})`
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 2 }}>
-        <div style={{ width: 20, height: 20, borderRadius: 3, background: swatch, border: '1px solid var(--border)', flexShrink: 0 }} />
-        <span style={{ fontSize: 11, color: 'var(--text)' }}>{swatch}</span>
+    <div className={styles.picker}>
+      <div className={styles.swatchRow}>
+        <div className={styles.swatch} style={{ background: swatch }} />
+        <span className={styles.swatchHex}>{swatch}</span>
       </div>
       <Slider label="R" value={r} onChange={v => onChange([v, g, b])} />
       <Slider label="G" value={g} onChange={v => onChange([r, v, b])} />

@@ -1,0 +1,27 @@
+.slider {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  width: 100%;
+}
+
+.label {
+  font-size: 11px;
+  color: var(--text);
+  flex-shrink: 0;
+  user-select: none;
+}
+
+.track {
+  flex: 1;
+}
+
+.value {
+  font-size: 11px;
+  color: var(--text);
+  width: 34px;
+  text-align: right;
+  flex-shrink: 0;
+  font-family: var(--mono);
+  font-variant-numeric: tabular-nums;
+}

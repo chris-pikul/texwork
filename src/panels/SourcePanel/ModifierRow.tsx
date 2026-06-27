@@ -2,6 +2,7 @@ import { useStore } from '../../store/index.ts'
 import type { Modifier } from '../../store/types.ts'
 import { Slider } from '../../components/Slider.tsx'
 import { ColorPicker } from '../../components/ColorPicker.tsx'
+import styles from './ModifierRow.module.css'
 
 interface Props {
   sourceId: string
@@ -22,36 +23,21 @@ export function ModifierRow({ sourceId, modifier }: Props) {
   }
 
   return (
-    <div style={{
-      background: 'var(--bg)',
-      border: '1px solid var(--border)',
-      borderRadius: 6,
-      padding: '6px 8px',
-      opacity: modifier.enabled ? 1 : 0.45,
-    }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 4 }}>
+    <div className={styles.row} data-disabled={!modifier.enabled}>
+      <div className={styles.rowHeader}>
         <input
           type="checkbox"
           checked={modifier.enabled}
           onChange={() => toggle(sourceId, modifier.id)}
-          style={{ accentColor: 'var(--accent)', cursor: 'pointer' }}
         />
-        <span style={{ fontSize: 12, fontWeight: 500, color: 'var(--text-h)', flex: 1 }}>
-          {modifier.type}
-        </span>
-        <button
-          onClick={() => remove(sourceId, modifier.id)}
-          style={{ background: 'none', border: 'none', color: 'var(--text)', fontSize: 14, padding: '0 2px', lineHeight: 1 }}
-          title="Remove modifier"
-        >
-          ×
-        </button>
+        <span className={styles.typeLabel}>{modifier.type}</span>
+        <button className="btn-ghost" onClick={() => remove(sourceId, modifier.id)} title="Remove modifier">×</button>
       </div>
 
       {modifier.type === 'invert' && (
-        <div style={{ display: 'flex', gap: 8 }}>
+        <div className={styles.channels}>
           {CHANNELS.map((ch, i) => (
-            <label key={ch} style={{ display: 'flex', alignItems: 'center', gap: 3, fontSize: 12, cursor: 'pointer' }}>
+            <label key={ch} className={styles.chLabel}>
               <input
                 type="checkbox"
                 checked={((p['channels'] as string[]) ?? []).includes(ch)}
@@ -60,7 +46,6 @@ export function ModifierRow({ sourceId, modifier }: Props) {
                   if (e.target.checked) channels.push(ch)
                   set('channels', channels)
                 }}
-                style={{ accentColor: 'var(--accent)' }}
               />
               {CHANNEL_LABELS[i]}
             </label>
@@ -69,7 +54,7 @@ export function ModifierRow({ sourceId, modifier }: Props) {
       )}
 
       {modifier.type === 'tint' && (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+        <div className={styles.stack}>
           <ColorPicker
             value={(p['color'] as [number, number, number]) ?? [1, 0, 0]}
             onChange={color => set('color', color)}
@@ -79,16 +64,15 @@ export function ModifierRow({ sourceId, modifier }: Props) {
       )}
 
       {modifier.type === 'channel-pick' && (
-        <div style={{ display: 'flex', gap: 8 }}>
+        <div className={styles.channels}>
           {CHANNELS.map((ch, i) => (
-            <label key={ch} style={{ display: 'flex', alignItems: 'center', gap: 3, fontSize: 12, cursor: 'pointer' }}>
+            <label key={ch} className={styles.chLabel}>
               <input
                 type="radio"
                 name={`ch-pick-${modifier.id}`}
                 value={ch}
                 checked={(p['channel'] as string) === ch}
                 onChange={() => set('channel', ch)}
-                style={{ accentColor: 'var(--accent)' }}
               />
               {CHANNEL_LABELS[i]}
             </label>
@@ -97,7 +81,7 @@ export function ModifierRow({ sourceId, modifier }: Props) {
       )}
 
       {modifier.type === 'scale-repeat' && (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+        <div className={styles.stack}>
           <Slider label="Scale X" value={(p['scaleX'] as number) ?? 1} onChange={v => set('scaleX', v)} min={0.1} max={8} step={0.1} />
           <Slider label="Scale Y" value={(p['scaleY'] as number) ?? 1} onChange={v => set('scaleY', v)} min={0.1} max={8} step={0.1} />
         </div>

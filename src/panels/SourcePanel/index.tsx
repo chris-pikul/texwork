@@ -1,6 +1,7 @@
 import { useStore } from '../../store/index.ts'
 import { DropZone } from '../../components/DropZone.tsx'
 import { SourceCard } from './SourceCard.tsx'
+import styles from './SourcePanel.module.css'
 
 export function SourcePanel() {
   const sources = useStore(s => s.sources)
@@ -15,39 +16,20 @@ export function SourcePanel() {
   }
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', height: '100%', overflow: 'hidden' }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 10px', borderBottom: '1px solid var(--border)', flexShrink: 0 }}>
-        <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-h)', textTransform: 'uppercase', letterSpacing: 1, flex: 1 }}>
-          Sources
-        </span>
-        <button
-          onClick={() => addSource('texture')}
-          style={{ fontSize: 11, padding: '3px 8px', background: 'var(--accent-bg)', border: '1px solid var(--accent-border)', borderRadius: 4, color: 'var(--accent)' }}
-        >
-          + Texture
-        </button>
-        <button
-          onClick={() => addSource('flat')}
-          style={{ fontSize: 11, padding: '3px 8px', background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: 4, color: 'var(--text)' }}
-        >
-          + Flat
-        </button>
+    <div className={styles.panel}>
+      <div className={styles.header}>
+        <span className={styles.title}>Sources</span>
+        <button className="btn-hi" onClick={() => addSource('texture')}>+ Texture</button>
+        <button className="btn-outline" onClick={() => addSource('flat')}>+ Flat</button>
       </div>
 
       <DropZone
         onFiles={files => void handleDroppedFiles(files)}
-        style={{ flex: 1, overflow: 'hidden' } as React.CSSProperties}
+        className={styles.dropBody}
       >
-        <div
-          onClick={e => e.stopPropagation()}
-          style={{ height: '100%', overflowY: 'auto', padding: 8, display: 'flex', flexDirection: 'column', gap: 6 }}
-        >
+        <div onClick={e => e.stopPropagation()} className={styles.scroll}>
           {sources.length === 0 && (
-            <div style={{
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              height: '100%', color: 'var(--text)', fontSize: 12, textAlign: 'center',
-              pointerEvents: 'none',
-            }}>
+            <div className={styles.empty}>
               Drop images here or<br />use the buttons above
             </div>
           )}

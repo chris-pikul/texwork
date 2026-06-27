@@ -3,7 +3,7 @@ import { useStore } from './store/index.ts'
 import { SourcePanel } from './panels/SourcePanel/index.tsx'
 import { OutputPanel } from './panels/OutputPanel/index.tsx'
 import { PreviewPanel } from './panels/PreviewPanel/index.tsx'
-import './App.css'
+import styles from './App.module.css'
 
 export default function App() {
   const initWorker = useStore(s => s.initWorker)
@@ -15,19 +15,19 @@ export default function App() {
   }, [initWorker])
 
   return (
-    <div className="app-layout">
-      <header className="app-header">
-        <h1 className="app-title">texwork</h1>
-        {!worker && <span style={{ fontSize: 11, color: 'var(--text)', marginLeft: 12 }}>initializing…</span>}
+    <div className={styles.layout}>
+      <header className={styles.header}>
+        <h1 className={styles.title}>texwork</h1>
+        {!worker && <span className={styles.status}>initializing…</span>}
       </header>
-      <main className="app-main">
-        <aside className="panel panel-sources">
+      <main className={styles.main}>
+        <aside className={`${styles.panel} ${styles.panelSources}`}>
           <SourcePanel />
         </aside>
-        <aside className="panel panel-outputs">
+        <aside className={`${styles.panel} ${styles.panelOutputs}`}>
           <OutputPanel />
         </aside>
-        <section className="panel panel-preview">
+        <section className={`${styles.panel} ${styles.panelPreview}`}>
           <PreviewPanel />
         </section>
       </main>

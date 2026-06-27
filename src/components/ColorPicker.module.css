@@ -1,0 +1,25 @@
+.picker {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.swatchRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 2px;
+}
+
+.swatch {
+  width: 20px;
+  height: 20px;
+  border: 1px solid var(--border);
+  flex-shrink: 0;
+}
+
+.swatchHex {
+  font-size: 11px;
+  color: var(--text);
+  font-family: var(--mono);
+}

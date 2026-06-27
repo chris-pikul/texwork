@@ -1,3 +1,5 @@
+import styles from './Slider.module.css'
+
 interface Props {
   value: number
   onChange: (value: number) => void
@@ -5,13 +7,13 @@ interface Props {
   min?: number
   max?: number
   step?: number
-  style?: React.CSSProperties
+  className?: string
 }
 
-export function Slider({ value, onChange, label, min = 0, max = 1, step = 0.01, style }: Props) {
+export function Slider({ value, onChange, label, min = 0, max = 1, step = 0.01, className }: Props) {
   return (
-    <label style={{ display: 'flex', alignItems: 'center', gap: 6, width: '100%', ...style }}>
-      {label && <span style={{ fontSize: 12, color: 'var(--text)', minWidth: 0, flexShrink: 0 }}>{label}</span>}
+    <label className={`${styles.slider}${className ? ` ${className}` : ''}`}>
+      {label && <span className={styles.label}>{label}</span>}
       <input
         type="range"
         min={min}
@@ -19,11 +21,9 @@ export function Slider({ value, onChange, label, min = 0, max = 1, step = 0.01, 
         step={step}
         value={value}
         onChange={e => onChange(parseFloat(e.target.value))}
-        style={{ flex: 1, accentColor: 'var(--accent)', cursor: 'pointer' }}
+        className={styles.track}
       />
-      <span style={{ fontSize: 11, color: 'var(--text)', width: 36, textAlign: 'right', flexShrink: 0 }}>
-        {value.toFixed(2)}
-      </span>
+      <span className={styles.value}>{value.toFixed(2)}</span>
     </label>
   )
 }

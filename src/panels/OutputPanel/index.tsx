@@ -1,27 +1,34 @@
 import { useStore } from '../../store/index.ts'
 import { OutputCard } from './OutputCard.tsx'
+import styles from './OutputPanel.module.css'
 
 export function OutputPanel() {
   const outputs = useStore(s => s.outputs)
+  const materialName = useStore(s => s.materialName)
   const addOutput = useStore(s => s.addOutput)
+  const setMaterialName = useStore(s => s.setMaterialName)
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', height: '100%', overflow: 'hidden' }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 10px', borderBottom: '1px solid var(--border)', flexShrink: 0 }}>
-        <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-h)', textTransform: 'uppercase', letterSpacing: 1, flex: 1 }}>
-          Outputs
-        </span>
-        <button
-          onClick={addOutput}
-          style={{ fontSize: 11, padding: '3px 8px', background: 'var(--accent-bg)', border: '1px solid var(--accent-border)', borderRadius: 4, color: 'var(--accent)' }}
-        >
-          + Add
-        </button>
+    <div className={styles.panel}>
+      <div className={styles.header}>
+        <span className={styles.title}>Outputs</span>
+        <button className="btn-hi" onClick={addOutput}>+ Add</button>
       </div>
 
-      <div style={{ flex: 1, overflowY: 'auto', padding: 8, display: 'flex', flexDirection: 'column', gap: 6 }}>
+      <div className={styles.materialBar}>
+        <span className={styles.materialLabel}>Material</span>
+        <input
+          type="text"
+          value={materialName}
+          onChange={e => setMaterialName(e.target.value)}
+          className={styles.materialInput}
+          placeholder="e.g. Dirt"
+        />
+      </div>
+
+      <div className={styles.scroll}>
         {outputs.length === 0 && (
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', color: 'var(--text)', fontSize: 12, textAlign: 'center' }}>
+          <div className={styles.empty}>
             Add an output to start<br />packing channels
           </div>
         )}
