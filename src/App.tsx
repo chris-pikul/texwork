@@ -7,7 +7,6 @@ import styles from './App.module.css'
 
 export default function App() {
   const initWorker = useStore(s => s.initWorker)
-  const worker = useStore(s => s.worker)
 
   useEffect(() => {
     initWorker()
@@ -16,10 +15,6 @@ export default function App() {
 
   return (
     <div className={styles.layout}>
-      <header className={styles.header}>
-        <h1 className={styles.title}>texwork</h1>
-        {!worker && <span className={styles.status}>initializing…</span>}
-      </header>
       <main className={styles.main}>
         <aside className={`${styles.panel} ${styles.panelSources}`}>
           <SourcePanel />

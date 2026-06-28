@@ -17,7 +17,7 @@ export function DropZone({ onFiles, accept = 'image/*', multiple = true, childre
   function handleDrop(e: DragEvent<HTMLDivElement>) {
     e.preventDefault()
     setDragging(false)
-    const files = Array.from(e.dataTransfer.files).filter(f => f.type.startsWith('image/'))
+    const files = Array.from(e.dataTransfer.files)
     if (files.length) onFiles(files)
   }
 

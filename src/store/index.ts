@@ -79,6 +79,8 @@ interface AppState {
 
   // Preview
   setPreviewModel: (model: PreviewWiring['model']) => void
+  setPreviewEnvironment: (env: PreviewWiring['environment']) => void
+  setPreviewFullDef: (v: boolean) => void
   setRGBSlot: (slot: 'albedo' | 'normal' | 'emissive', outputId?: string) => void
   setChannelSlot: (slot: 'metallic' | 'roughness' | 'ao' | 'height', outputId?: string, channel?: Channel) => void
 
@@ -112,6 +114,8 @@ export const useStore = create<AppState>((set, get) => ({
   materialName: '',
   previewWiring: {
     model: 'sphere',
+    environment: 'studio',
+    fullDefinition: false,
     albedo: {}, normal: {}, emissive: {},
     metallic: { channel: 'r' }, roughness: { channel: 'r' },
     ao: { channel: 'r' },      height:    { channel: 'r' },
@@ -311,6 +315,13 @@ export const useStore = create<AppState>((set, get) => ({
 
   setPreviewModel: (model) => set(s => ({ previewWiring: { ...s.previewWiring, model } })),
 
+  setPreviewEnvironment: (env) => set(s => ({ previewWiring: { ...s.previewWiring, environment: env } })),
+
+  setPreviewFullDef: (v) => {
+    set(s => ({ previewWiring: { ...s.previewWiring, fullDefinition: v } }))
+    get().dispatchPreview()
+  },
+
   setRGBSlot: (slot, outputId) =>
     set(s => ({ previewWiring: { ...s.previewWiring, [slot]: { outputId } } })),
 
@@ -331,9 +342,10 @@ export const useStore = create<AppState>((set, get) => ({
   dispatchPreview: () => {
     if (previewDebounce) clearTimeout(previewDebounce)
     previewDebounce = setTimeout(() => {
-      const { worker, outputs, sources } = get()
+      const { worker, outputs, sources, previewWiring } = get()
       if (!worker || outputs.length === 0) return
-      worker.postMessage({ type: 'PROCESS_PREVIEW', outputs, sources })
+      const resolution = previewWiring.fullDefinition ? 'full' : 'preview'
+      worker.postMessage({ type: 'PROCESS_PREVIEW', outputs, sources, resolution })
     }, 100)
   },
 

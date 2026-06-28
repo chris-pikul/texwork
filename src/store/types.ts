@@ -47,10 +47,22 @@ export interface Output {
 
 // --- Preview ---
 
+export interface RGBSlot    { outputId?: string }
+export interface ChannelSlot { outputId?: string; channel: Channel }
+
 export interface PreviewWiring {
-  model: 'sphere' | 'cube' | 'plane' | 'cylinder'
-  preset: 'orm' | 'diffuse' | 'normal' | 'pbr-full' | 'custom'
-  slots: { albedo?: string; orm?: string; normal?: string; emissive?: string }
+  model:          'sphere' | 'cube' | 'plane' | 'cylinder'
+  environment:    'studio' | 'outdoor' | 'indoor'
+  fullDefinition: boolean
+  // Full-texture RGB maps
+  albedo:   RGBSlot
+  normal:   RGBSlot
+  emissive: RGBSlot
+  // Per-channel scalar maps
+  metallic:  ChannelSlot
+  roughness: ChannelSlot
+  ao:        ChannelSlot
+  height:    ChannelSlot
 }
 
 // --- Worker Message Protocol ---
@@ -59,7 +71,7 @@ export type WorkerCommand =
   | { type: 'LOAD_SOURCE'; sourceId: string; imageData: ImageData }
   | { type: 'UPDATE_FLAT'; sourceId: string; value: number }
   | { type: 'REMOVE_SOURCE'; sourceId: string }
-  | { type: 'PROCESS_PREVIEW'; outputs: Output[]; sources: Source[] }
+  | { type: 'PROCESS_PREVIEW'; outputs: Output[]; sources: Source[]; resolution: 'preview' | 'full' }
   | { type: 'PROCESS_EXPORT'; output: Output; outputId: string; sources: Source[] }
 
 export type WorkerResponse =

@@ -38,7 +38,7 @@ async function handle(cmd: WorkerCommand): Promise<void> {
       case 'PROCESS_PREVIEW': {
         syncMeta(cmd.sources)
         for (const output of cmd.outputs) {
-          const result = processOutput(output, sourcesMap, sourceMeta, 'preview')
+          const result = processOutput(output, sourcesMap, sourceMeta, cmd.resolution)
           const buf = result.data.buffer.slice(0)
           post({ type: 'PREVIEW_READY', outputId: output.id, buffer: buf, width: result.width, height: result.height }, [buf])
         }

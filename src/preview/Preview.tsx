@@ -13,6 +13,7 @@ export function Preview() {
 
   const previewWiring   = useStore(s => s.previewWiring)
   const previewTextures = useStore(s => s.previewTextures)
+  const environment     = useStore(s => s.previewWiring.environment)
 
   useEffect(() => {
     if (!canvasRef.current) return
@@ -25,6 +26,10 @@ export function Preview() {
   useEffect(() => {
     sceneRef.current?.setModel(previewWiring.model)
   }, [previewWiring.model])
+
+  useEffect(() => {
+    sceneRef.current?.setEnvironment(environment)
+  }, [environment])
 
   useEffect(() => {
     const scene = sceneRef.current

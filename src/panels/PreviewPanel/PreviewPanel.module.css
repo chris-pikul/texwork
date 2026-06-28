@@ -30,6 +30,63 @@
   margin-left: auto;
 }
 
+.envButtons {
+  display: flex;
+  gap: 1px;
+  padding-left: 6px;
+  border-left: 1px solid var(--border);
+}
+
+.fdToggle {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 0 0 0 6px;
+  border: none;
+  border-left: 1px solid var(--border);
+  background: none;
+  cursor: pointer;
+  color: var(--text);
+}
+
+.fdToggle:hover { color: var(--text-h); }
+
+.fdLabel {
+  font-size: 9px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.fdSwitch {
+  width: 26px;
+  height: 13px;
+  border-radius: 7px;
+  background: var(--border);
+  position: relative;
+  transition: background 0.15s;
+  flex-shrink: 0;
+}
+
+.fdToggleOn .fdSwitch {
+  background: var(--text-h);
+}
+
+.fdThumb {
+  position: absolute;
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: var(--bg);
+  top: 2px;
+  left: 2px;
+  transition: left 0.15s;
+}
+
+.fdToggleOn .fdThumb {
+  left: 15px;
+}
+
 .modelBtn {
   width: 26px;
   height: 26px;
