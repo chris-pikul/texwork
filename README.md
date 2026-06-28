@@ -2,7 +2,7 @@
   <img src="public/favicon.svg" width="72" height="72" alt="texwork" />
   <h1>texwork</h1>
   <p>Browser-based PBR texture workbench — compose, preview, and export material maps.</p>
-  <a href="https://chris-pikul.github.io"><strong>Open the app →</strong></a>
+  <a href="https://chris-pikul.github.io/texwork"><strong>Open the app →</strong></a>
   <br /><br />
 
   ![TypeScript](https://img.shields.io/badge/TypeScript-6-3178C6?style=flat-square&logo=typescript&logoColor=white)
